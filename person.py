@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# robots.txt
 from html.parser import HTMLParser
 from urllib import request
 import re
@@ -13,4 +14,5 @@ class Person(object):
         self.__book_href = 'https://book.' + href[8:] + 'collect'
         self.__music_href = 'https://music.' + href[8:] + 'collect'
 
-    def _get_movie(self):
+    
+        
