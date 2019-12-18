@@ -5,8 +5,16 @@ from urllib import request
 import re
 import time
 
-# movie 
-# subject 25853071 name 庆余年 person 闲不住的小绵羊 rating 5 
+# movie_person book_person music_person
+# subject_num 25853071 name 庆余年 person_name 闲不住的小绵羊 person_id  rating 5 timestamp  1:-2 2:-1 3:0 4:+1 5:+2
+
+#subject
+# num 25853071 name 庆余年 type movie
+
+#person
+#name 闲不住的小绵羊 sex 1
+
+
 class Person(object):
     def __init__(self,href):
         self.__href = href
