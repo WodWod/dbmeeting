@@ -20,12 +20,12 @@ SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 DROP TABLE IF EXISTS `movie_person`;
 CREATE TABLE `movie_person` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
   `subject_num` varchar(10) DEFAULT '' ,
-  `name` varchar(100) DEFAULT '',
-  `person_name` varchar(20) DEFAULT '',
+  `name` varchar(500) DEFAULT '',
+  `person_name` varchar(50) DEFAULT '',
   `rating` int(1) DEFAULT 3 ,
-  `person_id` varchar(30) DEFAULT '',
+  `person_id` varchar(50) DEFAULT '',
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
@@ -33,12 +33,32 @@ CREATE TABLE `movie_person` (
 
 DROP TABLE IF EXISTS `book_person`;
 CREATE TABLE `book_person` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
   `subject_num` varchar(10) DEFAULT '' ,
-  `name` varchar(100) DEFAULT '',
-  `person_name` varchar(20) DEFAULT '',
+  `name` varchar(500) DEFAULT '',
+  `person_name` varchar(50) DEFAULT '',
   `rating` int(1) DEFAULT 3 ,
-  `person_id` varchar(30) DEFAULT '',
+  `person_id` varchar(50) DEFAULT '',
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `music_person`;
+CREATE TABLE `music_person` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `subject_num` varchar(10) DEFAULT '' ,
+  `name` varchar(500) DEFAULT '',
+  `person_name` varchar(50) DEFAULT '',
+  `rating` int(1) DEFAULT 3 ,
+  `person_id` varchar(50) DEFAULT '',
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `person`;
+CREATE TABLE `person` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `person_id` varchar(50) DEFAULT '',
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

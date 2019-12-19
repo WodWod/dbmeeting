@@ -13,26 +13,25 @@ class MyHTMLParser(HTMLParser):
         self.__isEndPage=True
         self.__dataList=[]
         self.__nameData,self.__subjectData,self.__ratingData,self.__personData,self.__personId = '','','','',person_id
-        self.limit_name,self.limit_subject,self.limit_rating,self.limit_person = False,False,False,False
+        self.limit_name,self.limit_name_span,self.limit_subject,self.limit_rating,self.limit_person = False,False,False,False,False
     
     def isEnd(self):
         return self.__isEndPage
 
     def handle_starttag(self, tag, attrs):
         limit_name=False
+        limit_name_span=False
         limit_subject=False
         limit_rating=False
         limit_person=False
         
         
-        if(tag=='div' and self.__isEndPage):
+        if(tag=='li' and self.__isEndPage):
             for item in attrs:
-                if item[0]=='class' and item[1]=='item':
+                if item[0]=='class' and item[1]=='subject-item':
                     self.__isEndPage=False
 
 
-        if(tag=='em'): 
-            limit_name=True 
         if(tag=='a'):
             if len(attrs)>2:
                 if not attrs[0][1]=='nbg':
@@ -47,33 +46,36 @@ class MyHTMLParser(HTMLParser):
                 if(attr[0]=='class'and re.match(r'^rating',attr[1])):
                     limit_rating=True   
                     self.__ratingData=int(attr[1][6:7])
+                elif attr[0]=='style' and re.match(r'font-size:12px;',attr[1]):
+                    limit_name_span=True
         if(tag=='h1'): 
             limit_person=True       
     
-        self.limit_name,self.limit_subject,self.limit_rating,self.limit_person = limit_name,limit_subject,limit_rating,limit_person
+        self.limit_name,self.limit_name_span,self.limit_subject,self.limit_rating,self.limit_person = limit_name,limit_name_span,limit_subject,limit_rating,limit_person
                     
 
     def handle_endtag(self, tag):
-        pass
+        if tag == 'html':
+            for item in self.__dataList:
+                cursor.execute('insert into book_person (subject_num,name,person_name,rating,person_id) values (%s, %s,  %s, %s , %s)', [item['subject_num'],item['name'],item['person_name'],item['rating'],self.__personId])   
+            # print(str(self.__dataList))
 
     def handle_startendtag(self, tag, attrs):
         pass
 
     def handle_data(self, data):
         if self.limit_name:
-            self.__nameData=data
+            self.__nameData=data.replace('\n','').strip()
+        elif self.limit_name_span:
+            self.__nameData += data.replace('\n','').strip()
         elif self.limit_subject:
             pass
         elif self.limit_rating :
-            self.__dataList.append({'subject_num':self.__subjectData,'name':self.__nameData,'rating':self.__ratingData,'person_name':''})
+            self.__dataList.append({'subject_num':self.__subjectData,'name':self.__nameData,'rating':self.__ratingData,'person_name':self.__personData})
         elif  self.limit_person:
             self.__personData=data[0:data.find('读过的书')]
-            for item in self.__dataList:
-                item['person_name']=self.__personData
-                # cursor.execute('insert into book_person (subject_num,name,person_name,rating,person_id) values (%s, %s,  %s, %s , %s)', [item['subject_num'],item['name'],item['person_name'],item['rating'],self.__personId])   
-            print(str(self.__dataList))
-        
-        self.limit_name,self.limit_subject,self.limit_rating,self.limit_person = False,False,False,False
+            
+        self.limit_name,self.limit_name_span,self.limit_subject,self.limit_rating,self.limit_person = False,False,False,False,False
 
 
     def handle_comment(self, data):
@@ -95,7 +97,7 @@ class Book_List(object):
         
     def write_data(self):
         try:
-            for x in range(0,1):
+            for x in range(0,100):
                 time.sleep(5)
                 req=request.Request(self.__href+'?start=%s&sort=time&rating=all&filter=all&mode=grid' % str(x*15))
                 req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36')
@@ -103,19 +105,25 @@ class Book_List(object):
                 with request.urlopen(req) as f:
                     parser.init(self.__personId)
                     data=f.read()
-                    print('data:', data.decode('utf-8'))
+                    # print('data:', data.decode('utf-8'))
                     parser.feed(data.decode('utf-8'))
                     if(parser.isEnd()):
-                        print('最后一页:%s' % (x-1)*15)
+                        print('%s-读书最后一页:%s' %(self.__personId,x*15))
                         break
         except BaseException as e:
                     print('Error:',e)
         finally:
             conn.commit()
-            cursor.close()
-            conn.close()
+            # cursor.close()
+            # conn.close()
+
+    def close_link(self):
+        cursor.close()
+        conn.close()
                 
-test=Book_List('https://book.douban.com/people/45453613/collect')
-test.write_data()
+# test=Book_List('https://book.douban.com/people/45453613/collect')
+# test.write_data()
+
+
 
 
