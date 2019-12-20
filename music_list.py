@@ -7,6 +7,7 @@ import mysql.connector
 
 conn = mysql.connector.connect(user='root', password='123456', database='dbmeeting')
 cursor = conn.cursor()
+cursor.execute('SET NAMES utf8mb4;')
 
 class MyHTMLParser(HTMLParser):
     def init(self,person_id):
@@ -113,8 +114,12 @@ class Music_List(object):
                         break
         except BaseException as e:
                     print('Error:',e)
-        finally:
+                    # 发生错误时回滚
+                    conn.rollback()
+        else:
             conn.commit()
+        finally:
+            pass
             # cursor.close()
             # conn.close()
 

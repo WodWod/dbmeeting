@@ -1,0 +1,10 @@
+1.Error: 1366 (HY000): Incorrect string value: '\xF0\x9F\xA4\x94' for column 'person_name' at row 1
+名字内含表情
+
+2.修改 utf8mb4存储emoji 
+   https://blog.csdn.net/m82_a1/article/details/90448232
+   
+2.1 MySQL报错： Found option without preceding group in config file:XXX; Fatal error in defaults handling.
+       https://blog.csdn.net/life_android/article/details/56512606
+
+

@@ -7,6 +7,7 @@ import mysql.connector
 
 conn = mysql.connector.connect(user='root', password='123456', database='dbmeeting')
 cursor = conn.cursor()
+cursor.execute('SET NAMES utf8mb4;')
 
 class MyHTMLParser(HTMLParser):
     def init(self,person_id):
@@ -56,7 +57,7 @@ class MyHTMLParser(HTMLParser):
         if tag == 'html':
             for item in self.__dataList:
                 item['person_name']=self.__personData
-                cursor.execute('insert into movie_person (subject_num,name,person_name,rating,person_id) values (%s, %s,  %s, %s , %s)', [item['subject_num'],item['name'],item['person_name'],item['rating'],self.__personId]) 
+                cursor.execute('insert into movie_person (subject_num,name,person_name,rating,person_id) values (%s, %s,  %s, %s , %s)', [item['subject_num'],item['name'],item['person_name'],item['rating'],self.__personId])  
         # print(str(self.__dataList))
 
         if tag =='em':
@@ -74,7 +75,7 @@ class MyHTMLParser(HTMLParser):
             self.__nameData += data.replace('\n','').strip()
         elif self.limit_subject:
             pass
-        elif self.limit_rating :
+        elif self.limit_rating : #不打分则不计入
             self.__dataList.append({'subject_num':self.__subjectData,'name':self.__nameData,'rating':self.__ratingData,'person_name':self.__personData,'timestamp':time.time()})
         elif  self.limit_person:
             self.__personData=data[0:data.find('看过的电影')]
@@ -114,17 +115,20 @@ class Movie_List(object):
                         print('%s-电影最后一页:%s' % (self.__personId,x*15))
                         break
         except BaseException as e:
-                    print('Error:',e)
-        finally:
+                    # 发生错误时回滚
+                    conn.rollback() 
+                    print('Error:',e)            
+        else:
             conn.commit()
+        finally:
+            pass
             # cursor.close()
             # conn.close()
-    
     def close_link(self):
         cursor.close()
         conn.close()
-                
-# test=Movie_List('https://movie.douban.com/people/45453613/collect')
+     
+# test=Movie_List('https://movie.douban.com/people/189136712/collect')
 # test.write_data()
-
+# test.close_link()
 

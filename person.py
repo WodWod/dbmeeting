@@ -23,7 +23,6 @@ cursor = conn.cursor()
 #person_id 45453613 sex 1
 #71098717
 
-#头像地址 https://img3.doubanio.com/icon/u45453613.jpg
 
 movie,book,music=None,None,None
 
@@ -70,7 +69,7 @@ class Person(object):
         conn.close()
         
 
-# test=Person('https://www.douban.com/people/71098717/')
-# test.write_data()
+test=Person('https://www.douban.com/people/willow/')
+test.write_data()
     
         

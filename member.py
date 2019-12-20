@@ -53,7 +53,7 @@ class Member_List(object):
         self.__href=href
         
     def write_data(self):
-        search_list = [range(0,1)]
+        search_list = list(range(0,10))
         for x in search_list:
             time.sleep(5)
             req=request.Request(self.__href+'/members?start=%s' % str(x*35))
@@ -62,9 +62,9 @@ class Member_List(object):
             with request.urlopen(req) as f:
                 parser.init()
                 data=f.read()
-                print('data:', data.decode('utf-8'))
+                # print('data:', data.decode('utf-8'))
                 parser.feed(data.decode('utf-8'))
-                if(parser.isEnd() and x == search_list[-1]):
+                if(parser.isEnd() or x == search_list[-1]):
                     print('小组成员最后一页:%s' ,x*35)
                     person_list.close_link()
                     break
