@@ -7,11 +7,12 @@ import time
 from movie_list import Movie_List
 from book_list import Book_List
 from music_list import Music_List
-
 import mysql.connector 
+from config import config 
 
-conn = mysql.connector.connect(user='root', password='123456', database='dbmeeting')
+conn = mysql.connector.connect(host=config['host'],user=config['user'], password=config['password'], database=config['database'])
 cursor = conn.cursor()
+cursor.execute('SET NAMES utf8mb4;')
 
 # movie_person book_person music_person
 # subject_num 25853071 name 庆余年 person_name 闲不住的小绵羊 person_id  rating 5 timestamp  1:-2 2:-1 3:0 4:+1 5:+2

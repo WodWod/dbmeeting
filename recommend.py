@@ -4,8 +4,9 @@
 import mysql.connector 
 import json
 import math
+from config import config 
 
-conn = mysql.connector.connect(user='root', password='123456', database='dbmeeting')
+conn = mysql.connector.connect(host=config['host'],user=config['user'], password=config['password'], database=config['database'])
 cursor = conn.cursor()
 
 class Recommend(object):
