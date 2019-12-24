@@ -14,8 +14,8 @@ class MyHTMLParser(HTMLParser):
     def init(self,person_id):
         self.__isEndPage=True
         self.__dataList=[]
-        self.__nameData,self.__subjectData,self.__ratingData,self.__personData,self.__personId = '','','','',person_id
-        self.limit_em_end,self.limit_name,self.limit_subject,self.limit_rating,self.limit_person = False,False,False,False,False
+        self.__nameData,self.__subjectData,self.__ratingData,self.__personData,self.__img_src,self.__personId = '','','','','',person_id
+        self.limit_img_src,self.limit_em_end,self.limit_name,self.limit_subject,self.limit_rating,self.limit_person = False,False,False,False,False,False
     
     def isEnd(self):
         return self.__isEndPage
@@ -25,7 +25,6 @@ class MyHTMLParser(HTMLParser):
         limit_subject=False
         limit_rating=False
         limit_person=False
-        
         
         if(tag=='div' and self.__isEndPage):
             for item in attrs:
@@ -50,7 +49,6 @@ class MyHTMLParser(HTMLParser):
                     self.__ratingData=int(attr[1][6:7])
         if(tag=='h1'): 
             limit_person=True       
-    
         self.limit_name,self.limit_subject,self.limit_rating,self.limit_person = limit_name,limit_subject,limit_rating,limit_person
         self.limit_em_end=False             
 
@@ -58,7 +56,7 @@ class MyHTMLParser(HTMLParser):
         if tag == 'html':
             for item in self.__dataList:
                 item['person_name']=self.__personData
-                cursor.execute('insert into movie_person (subject_num,name,person_name,rating,person_id) values (%s, %s,  %s, %s , %s)', [item['subject_num'],item['name'],item['person_name'],item['rating'],self.__personId])  
+                cursor.execute('insert into movie_person (subject_num,name,person_name,rating,person_id,img_src) values (%s, %s,  %s, %s , %s ,%s)', [item['subject_num'],item['name'],item['person_name'],item['rating'],self.__personId,item['img_src']])  
         # print(str(self.__dataList))
 
         if tag =='em':
@@ -67,7 +65,11 @@ class MyHTMLParser(HTMLParser):
             self.limit_em_end = False
 
     def handle_startendtag(self, tag, attrs):
-        pass
+        if tag == 'img':
+            for attr in attrs:
+                if attr[0]=='src' and attr[1].find('doubanio.com/icon/u') !=-1:
+                    self.limit_img_src=True
+                    self.__img_src = attr[1]
 
     def handle_data(self, data):
         if self.limit_name:
@@ -77,11 +79,12 @@ class MyHTMLParser(HTMLParser):
         elif self.limit_subject:
             pass
         elif self.limit_rating : #不打分则不计入
-            self.__dataList.append({'subject_num':self.__subjectData,'name':self.__nameData,'rating':self.__ratingData,'person_name':self.__personData,'timestamp':time.time()})
+            self.__dataList.append({'subject_num':self.__subjectData,'name':self.__nameData,'rating':self.__ratingData,'person_name':self.__personData,'img_src':self.__img_src,'timestamp':time.time()})
         elif  self.limit_person:
             self.__personData=data[0:data.find('看过的电影')]
-        
-        self.limit_name,self.limit_em_end,self.limit_subject,self.limit_rating,self.limit_person = False,False,False,False,False
+        elif self.limit_img_src:
+            pass
+        self.limit_name,self.limit_em_end,self.limit_subject,self.limit_rating,self.limit_person,self.limit_img_src = False,False,False,False,False,False
 
 
     def handle_comment(self, data):
@@ -97,17 +100,21 @@ parser = MyHTMLParser()
 
 
 class Movie_List(object):
-    def __init__(self,href):
+    def __init__(self,href,proxy_address):
         self.__href=href
         self.__personId = href[len('https://movie.douban.com/people/'):href.find('/collect')]
+        self.__proxy_address = proxy_address
         
     def write_data(self):
         try:
             for x in range(0,100):
                 time.sleep(5)
+                ProxyHandler = request.ProxyHandler(self.__proxy_address)
+                Opener = request.build_opener(ProxyHandler)
+                request.install_opener(Opener)
                 req=request.Request(self.__href+'?start=%s&sort=time&rating=all&filter=all&mode=grid' % str(x*15))
                 req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36')
-                with request.urlopen(req) as f:
+                with request.urlopen(req,timeout=10) as f:
                     parser.init(self.__personId)
                     data=f.read()
                     # print('data:', data.decode('utf-8'))
@@ -118,7 +125,8 @@ class Movie_List(object):
         except BaseException as e:
                     # 发生错误时回滚
                     conn.rollback() 
-                    print('Error:',e)            
+                    print('Movie Error:',e)   
+                    raise         
         else:
             conn.commit()
         finally:
@@ -129,7 +137,7 @@ class Movie_List(object):
         cursor.close()
         conn.close()
      
-# test=Movie_List('https://movie.douban.com/people/189136712/collect')
+# test=Movie_List('https://movie.douban.com/people/189136712/collect',{'https':'36.27.29.233:9999'})
 # test.write_data()
 # test.close_link()
 

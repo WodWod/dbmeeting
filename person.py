@@ -9,10 +9,15 @@ from book_list import Book_List
 from music_list import Music_List
 import mysql.connector 
 from config import config 
+from proxy_address import ProxyAddress
 
 conn = mysql.connector.connect(host=config['host'],user=config['user'], password=config['password'], database=config['database'])
 cursor = conn.cursor()
 cursor.execute('SET NAMES utf8mb4;')
+#代理地址
+address_list =  ProxyAddress()
+address_list.get_init_data()
+# address = address_list.get_data()
 
 # movie_person book_person music_person
 # subject_num 25853071 name 庆余年 person_name 闲不住的小绵羊 person_id  rating 5 timestamp  1:-2 2:-1 3:0 4:+1 5:+2
@@ -25,8 +30,6 @@ cursor.execute('SET NAMES utf8mb4;')
 #71098717
 
 
-movie,book,music=None,None,None
-
 class Person(object):
     def __init__(self,href):
         self.__wrote = True
@@ -36,15 +39,36 @@ class Person(object):
         self.__music_href = 'https://music.' + self.__href[len('https://'):] + 'collect'
 
     def write_data(self):
-        movie=Movie_List(self.__movie_href)
-        book=Book_List(self.__book_href)
-        music=Music_List(self.__music_href)
+        global movie,book,music
+        movie=Movie_List(self.__movie_href,address_list.get_data())
+        book=Book_List(self.__book_href,address_list.get_data())
+        music=Music_List(self.__music_href,address_list.get_data())
 
         self.__is_wrote()
         if not self.__wrote:
-            movie.write_data()
-            book.write_data()
-            music.write_data()
+            try:
+                movie.write_data()
+                book.write_data()
+                music.write_data()
+                #写入人员表
+                cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])
+            except BaseException:
+                # print('Error:',e)
+                address_list.next()
+                self.write_data()
+                # movie=Movie_List(self.__movie_href,address_list.get_data())
+                # book=Book_List(self.__book_href,address_list.get_data())
+                # music=Music_List(self.__music_href,address_list.get_data())
+                # movie.write_data()
+                # book.write_data()
+                # music.write_data()
+                #写入人员表
+                cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])  
+            else:
+                pass
+            finally:
+                pass
+            
 
     def __is_wrote(self):
         try:
@@ -52,8 +76,7 @@ class Person(object):
             values = cursor.fetchall()
             if len(values)== 0:
                 self.__wrote = False
-                cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])     
-
+                     
         except BaseException as e:
             print('Error:',e)
         finally:
@@ -70,7 +93,7 @@ class Person(object):
         conn.close()
         
 
-test=Person('https://www.douban.com/people/willow/')
-test.write_data()
+# test=Person('https://www.douban.com/people/Lafa/')
+# test.write_data()
     
         

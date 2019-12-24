@@ -26,6 +26,7 @@ CREATE TABLE `movie_person` (
   `person_name` varchar(50) DEFAULT '',
   `rating` int(1) DEFAULT 3 ,
   `person_id` varchar(50) DEFAULT '',
+  `img_src`   varchar(100) DEFAULT '',
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -39,6 +40,7 @@ CREATE TABLE `book_person` (
   `person_name` varchar(50) DEFAULT '',
   `rating` int(1) DEFAULT 3 ,
   `person_id` varchar(50) DEFAULT '',
+  `img_src`   varchar(100) DEFAULT '',
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -51,6 +53,7 @@ CREATE TABLE `music_person` (
   `person_name` varchar(50) DEFAULT '',
   `rating` int(1) DEFAULT 3 ,
   `person_id` varchar(50) DEFAULT '',
+  `img_src`   varchar(100) DEFAULT '',
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -95,5 +98,5 @@ insert into subject(subject_num,name,type)  select subject_num,name,type from te
 DROP TABLE temp;
 
 -- 模糊匹配subject.name
-select subject_num,name from subject where type='movie' name like '%横道%' ;  subject_num 10484041
+select subject_num,name from subject where type='movie' and name like '%横道%' ;  subject_num 10484041
 select person_id,person_name,rating from movie_person where subject_num='10484041';  rating 5-> +2
