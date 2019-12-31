@@ -16,7 +16,6 @@ cursor = conn.cursor()
 cursor.execute('SET NAMES utf8mb4;')
 #代理地址
 address_list =  ProxyAddress()
-address_list.get_init_data()
 # address = address_list.get_data()
 
 # movie_person book_person music_person
@@ -53,21 +52,10 @@ class Person(object):
                 #写入人员表
                 cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])
             except BaseException:
-                # print('Error:',e)
-                address_list.next()
-                self.write_data()
-                # movie=Movie_List(self.__movie_href,address_list.get_data())
-                # book=Book_List(self.__book_href,address_list.get_data())
-                # music=Music_List(self.__music_href,address_list.get_data())
-                # movie.write_data()
-                # book.write_data()
-                # music.write_data()
-                #写入人员表
-                cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])  
-            else:
-                pass
-            finally:
-                pass
+                    address_list.next()
+                    self.write_data()
+                    #写入人员表
+                    cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])  
             
 
     def __is_wrote(self):

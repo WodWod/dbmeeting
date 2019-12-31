@@ -80,23 +80,36 @@ CREATE TABLE `subject` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;
 
 CREATE TEMPORARY TABLE temp (subject_num varchar(10),name varchar(500) ,type varchar(10));
-insert into temp(subject_num,name)  select subject_num,name  from movie_person group by subject_num,name;
+insert IGNORE into temp(subject_num,name)  select subject_num,name  from movie_person group by subject_num,name;
 update temp set type='movie';
-insert into subject(subject_num,name,type)  select subject_num,name,type from temp;
+insert IGNORE into subject(subject_num,name,type)  select subject_num,name,type from temp;
 DROP TABLE temp;
 
 CREATE TEMPORARY TABLE temp (subject_num varchar(10),name varchar(500) ,type varchar(10));
-insert into temp(subject_num,name)  select subject_num,name  from book_person group by subject_num,name;
+insert IGNORE into temp(subject_num,name)  select subject_num,name  from book_person group by subject_num,name;
 update temp set type='book';
-insert into subject(subject_num,name,type)  select subject_num,name,type from temp;
+insert IGNORE into subject(subject_num,name,type)  select subject_num,name,type from temp;
 DROP TABLE temp;
 
 CREATE TEMPORARY TABLE temp (subject_num varchar(10),name varchar(500) ,type varchar(10));
-insert into temp(subject_num,name)  select subject_num,name  from music_person group by subject_num,name;
+insert IGNORE into temp(subject_num,name)  select subject_num,name  from music_person group by subject_num,name;
 update temp set type='music';
-insert into subject(subject_num,name,type)  select subject_num,name,type from temp;
+insert IGNORE into subject(subject_num,name,type)  select subject_num,name,type from temp;
 DROP TABLE temp;
 
 -- 模糊匹配subject.name
 select subject_num,name from subject where type='movie' and name like '%横道%' ;  subject_num 10484041
 select person_id,person_name,rating from movie_person where subject_num='10484041';  rating 5-> +2
+
+-- 代理池
+DROP TABLE IF EXISTS `proxy`;
+CREATE TABLE `proxy` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `type` varchar(10) DEFAULT '',
+  `address` varchar(50) DEFAULT '',
+  `status`  int(1),
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+delete from proxy where status=0;

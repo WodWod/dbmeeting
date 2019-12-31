@@ -5,6 +5,9 @@ import re
 import time
 import mysql.connector 
 from config import config 
+#浏览器头
+from user_agent import Agent
+agent= Agent()
 
 conn = mysql.connector.connect(host=config['host'],user=config['user'], password=config['password'], database=config['database'])
 cursor = conn.cursor()
@@ -113,7 +116,7 @@ class Movie_List(object):
                 Opener = request.build_opener(ProxyHandler)
                 request.install_opener(Opener)
                 req=request.Request(self.__href+'?start=%s&sort=time&rating=all&filter=all&mode=grid' % str(x*15))
-                req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36')
+                req.add_header('User-Agent',agent.get_data())
                 with request.urlopen(req,timeout=10) as f:
                     parser.init(self.__personId)
                     data=f.read()
@@ -125,8 +128,12 @@ class Movie_List(object):
         except BaseException as e:
                     # 发生错误时回滚
                     conn.rollback() 
-                    print('Movie Error:',e)   
-                    raise         
+                    print('Movie Error:',e)  
+                    if hasattr(e,'code'):
+                        if not e.code == 404:
+                            raise       
+                    else:
+                        raise  
         else:
             conn.commit()
         finally:
@@ -137,7 +144,7 @@ class Movie_List(object):
         cursor.close()
         conn.close()
      
-# test=Movie_List('https://movie.douban.com/people/189136712/collect',{'https':'36.27.29.233:9999'})
+# test=Movie_List('https://movie.douban.com/people/79614632/collect?start=0&sort=time&rating=all&filter=all&mode=grid',{'HTTPS': '223.199.23.216:9999'})
 # test.write_data()
 # test.close_link()
 
