@@ -13,6 +13,11 @@ conn = mysql.connector.connect(host=config['host'],user=config['user'], password
 cursor = conn.cursor()
 cursor.execute('SET NAMES utf8mb4;')
 
+#代理地址
+from proxy_address import ProxyAddress
+address_list =  ProxyAddress()
+# address = address_list.get_data()
+
 class MyHTMLParser(HTMLParser):
     def init(self,person_id):
         self.__isEndPage=True
@@ -103,19 +108,19 @@ parser = MyHTMLParser()
 
 
 class Movie_List(object):
-    def __init__(self,href,proxy_address):
+    def __init__(self,href):
         self.__href=href
         self.__personId = href[len('https://movie.douban.com/people/'):href.find('/collect')]
-        self.__proxy_address = proxy_address
+        self.__count=0
         
     def write_data(self):
-        try:
-            for x in range(0,100):
-                time.sleep(5)
-                ProxyHandler = request.ProxyHandler(self.__proxy_address)
+        for x in range(0,100):
+            try:
+                time.sleep(2)
+                ProxyHandler = request.ProxyHandler(address_list.get_data())
                 Opener = request.build_opener(ProxyHandler)
                 request.install_opener(Opener)
-                req=request.Request(self.__href+'?start=%s&sort=time&rating=all&filter=all&mode=grid' % str(x*15))
+                req=request.Request(self.__href+'?start=%s&sort=time&rating=all&filter=all&mode=grid' % str((x-self.__count)*15))
                 req.add_header('User-Agent',agent.get_data())
                 with request.urlopen(req,timeout=10) as f:
                     parser.init(self.__personId)
@@ -123,23 +128,23 @@ class Movie_List(object):
                     # print('data:', data.decode('utf-8'))
                     parser.feed(data.decode('utf-8'))
                     if(parser.isEnd()):
-                        print('%s-电影最后一页:%s' % (self.__personId,x*15))
+                        print('%s-电影最后一页:%s' % (self.__personId,(x-self.__count)*15))
+                        conn.commit()
                         break
-        except BaseException as e:
-                    # 发生错误时回滚
-                    conn.rollback() 
-                    print('Movie Error:',e)  
-                    if hasattr(e,'code'):
-                        if not e.code == 404:
-                            raise       
-                    else:
-                        raise  
-        else:
-            conn.commit()
-        finally:
-            pass
-            # cursor.close()
-            # conn.close()
+            except BaseException as e:
+                        # 发生错误时回滚
+                        # conn.rollback() 
+                        print('Movie Error:',e)  
+                        if hasattr(e,'code'):
+                            if not e.code == 404:
+                                address_list.next()
+                                self.__count+=1    
+                            else:
+                                break
+                        else:
+                            address_list.next()
+                            self.__count+=1  
+
     def close_link(self):
         cursor.close()
         conn.close()

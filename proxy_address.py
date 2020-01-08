@@ -6,6 +6,7 @@ import re
 import time
 from config import config
 import mysql.connector 
+import json
 
 
 conn = mysql.connector.connect(host=config['host'],user=config['user'], password=config['password'], database=config['database'])
@@ -82,33 +83,82 @@ class ProxyAddress(object):
         self.__limit=10
         self.__proxy_list=[]
         self.__filter_end=False
+        self.__check_end=True
+        self.__before_stop_time=int(time.time())
+        self.__stop_during=10
     def get_data(self):
-        if len(self.__address_list)==0:
-            cursor.execute('select type,address from proxy where status=1 order by id') 
-            values = cursor.fetchall()
-            for value in values:
-                self.__address_list.append({value[0]:value[1]})
-        return self.__address_list[self.__index]
+        # if len(self.__address_list)==0:
+        #     cursor.execute('select type,address from proxy where status=1 order by id') 
+        #     values = cursor.fetchall()
+        #     for value in values:
+        #         self.__address_list.append({value[0]:value[1]})
+        # return self.__address_list[self.__index]
+        
+        #飞蚁代理
+        cursor.execute('select type,address from proxy where status=1 order by id') 
+        values = cursor.fetchall()
+        for value in values:
+            return {value[0]:value[1]}
+        
     def next(self):
-        if self.__index == len(self.__address_list)-1:
-            print('代理地址用完了')
-            self.__index=0
-            return False
-        else:
-            self.__index += 1
-            print('由%s切换至%s' %(self.__address_list[self.__index-1],self.__address_list[self.__index]))
-            return True
+        # if self.__index == len(self.__address_list)-1:
+        #     print('代理地址用完了')
+        #     self.__index=0
+        #     return False
+        # else:
+        #     self.__index += 1
+        #     print('由%s切换至%s' %(self.__address_list[self.__index-1],self.__address_list[self.__index]))
+        #     return True
+
+        #飞蚁代理
+        req=request.Request('http://183.129.244.16:88/open?user_name=dbmeetap2&timestamp=%s&md5=D2107E18124EF112C90B838C82AF85D2&pattern=json&number=1' % int(time.time()) )
+        with request.urlopen(req) as f:
+            data=json.loads(f.read().decode('utf-8'))
+            cursor.execute('update proxy set address=%s',(data['domain']+':'+str(data['port'][0]),))
+            conn.commit()
+            print('切换至:%s|left %s' %(data['domain']+':'+str(data['port'][0]),data['left_ip']))
     
     def get_init_data(self):
-        time.sleep(5)
-        req=request.Request('https://www.xicidaili.com/wn/')
-        req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36')
-        with request.urlopen(req) as f:
-            data=f.read()
-            # print('data:', data.decode('utf-8'))
-            parser.feed(data.decode('utf-8'))
-            # self.__address_list = parser.get_data()
+        # time.sleep(5)
+        # req=request.Request('https://www.xicidaili.com/nn/')
+        # req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36')
+        # with request.urlopen(req) as f:
+        #     data=f.read()
+        #     parser.feed(data.decode('utf-8'))
 
+        #飞蚁代理
+        req=request.Request('http://183.129.244.16:88/open?user_name=dbmeetap2&timestamp=%s&md5=D2107E18124EF112C90B838C82AF85D2&pattern=json&number=1' % int(time.time()) )
+        with request.urlopen(req) as f:
+            data=json.loads(f.read().decode('utf-8'))
+            cursor.execute('update proxy set address=%s',(data['domain']+':'+str(data['port'][0]),))
+            conn.commit()
+            print('切换至:%s|left %s' %(data['domain']+':'+str(data['port'][0]),data['left_ip']))
+            
+
+    def check_proxy(self):
+        print('开始验证数据匿名性...')
+        while True:
+            self.__offset=0
+            cursor.execute('select id,type,address from proxy order by id limit %s offset %s ',(self.__limit,self.__offset))   
+            self.__proxy_list = cursor.fetchall()
+            if len(self.__proxy_list)<10:
+                self.__check_end=True
+            for item in self.__proxy_list:
+                time.sleep(1)
+                ProxyHandler = request.ProxyHandler({item[1]:item[2]})
+                Opener = request.build_opener(ProxyHandler)
+                request.install_opener(Opener)
+                req=request.Request('https://www.xxorg.com/tools/checkproxy/')
+                # req.add_header('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36')
+                # req.add_header('Cookie','ll="118267"; bid=2Gkun4aXaEg; __utma=30149280.325389959.1576659520.1576659520.1576659520.1; __utmc=30149280; __utmz=30149280.1576659520.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmt=1; _pk_ref.100001.3ac3=%5B%22%22%2C%22%22%2C1576659543%2C%22https%3A%2F%2Fwww.douban.com%2Fpeople%2F45453613%2F%22%5D; _pk_id.100001.3ac3=dc97f5b5f0771093.1576659543.1.1576659543.1576659543.; _pk_ses.100001.3ac3=*; __utmt_douban=1; __utmb=30149280.2.10.1576659520; __utma=81379588.2124264048.1576659543.1576659543.1576659543.1; __utmc=81379588; __utmz=81379588.1576659543.1.1.utmcsr=douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/people/45453613/; __utmb=81379588.1.10.1576659543')
+                with request.urlopen(req,timeout=10) as f:
+                    print(f.read().decode('utf-8'))
+                    print('Check Success:%s' % item[1]+':'+item[2] )
+                    cursor.execute('update proxy set status=1 where id =%s',(item[0],))
+            if self.__check_end:
+                break
+                
+            
     def filter(self):
         print('开始过滤现存数据...')
         while True:
@@ -117,7 +167,7 @@ class ProxyAddress(object):
             if len(self.__proxy_list)<10:
                 self.__filter_end=True
             for item in self.__proxy_list:
-                time.sleep(1)
+                # time.sleep(1)
                 try:
                     ProxyHandler = request.ProxyHandler({item[1]:item[2]})
                     Opener = request.build_opener(ProxyHandler)
@@ -150,7 +200,7 @@ class ProxyAddress(object):
             if len(self.__proxy_list)<10:
                 self.__filter_end=True
             for item in self.__proxy_list:
-                time.sleep(1)
+                # time.sleep(1)
                 try:
                     ProxyHandler = request.ProxyHandler({item[1]:item[2]})
                     Opener = request.build_opener(ProxyHandler)
@@ -173,42 +223,13 @@ class ProxyAddress(object):
                 # conn.close()
                 break
 
-test= ProxyAddress()
+# test= ProxyAddress()
 # test.get_init_data()
-test.filter()
+# test.filter()
+# # test.check_proxy()
 
 # 手动写入
-# data=[{
-# 	"HTTP": "115.211.228.92:9999"
-# }, {
-# 	"HTTP": "219.159.38.197:56210"
-# }, {
-# 	"HTTP": "47.107.175.190:8000"
-# }, {
-# 	"HTTP": "183.146.157.54:9999"
-# }, {
-# 	"HTTP": "163.204.242.181:9999"
-# }, {
-# 	"HTTP": "125.92.100.51:9999"
-# }, {
-# 	"HTTP": "113.195.17.125:9999"
-# }, {
-# 	"HTTP": "117.94.183.214:9999"
-# }, {
-# 	"HTTP": "115.211.229.240:9999"
-# }, {
-# 	"HTTP": "118.25.13.185:8118"
-# }, {
-# 	"HTTP": "106.85.128.2:9999"
-# }, {
-# 	"HTTP": "120.79.193.230:8000"
-# }, {
-# 	"HTTP": "118.24.246.249:80"
-# }, {
-# 	"HTTP": "171.35.168.68:9999"
-# }, {
-# 	"HTTP": "183.154.49.62:9999"
-# }]
+# data=[{"HTTP":"112.111.217.45:9999"},{"HTTP":"218.14.140.135:9999"},{"HTTP":"223.241.116.83:9999"},{"HTTP":"47.100.21.174:8021"},{"HTTP":"171.12.112.109:9999"},{"HTTP":"220.176.93.158:9000"},{"HTTP":"36.248.132.16:9999"},{"HTTP":"122.4.46.30:9999"},{"HTTP":"114.239.29.221:9999"},{"HTTP":"27.38.154.15:8118"},{"HTTP":"124.239.216.14:8060"},{"HTTP":"171.12.112.116:9999"},{"HTTP":"218.21.96.128:58080"},{"HTTP":"115.239.24.50:9999"},{"HTTP":"60.167.134.2:9999"}]
 # for item in data:
 #     for key,value in item.items():
 #         cursor.execute('insert into proxy (type,address) values (%s,%s)',[key,value])

@@ -9,14 +9,10 @@ from book_list import Book_List
 from music_list import Music_List
 import mysql.connector 
 from config import config 
-from proxy_address import ProxyAddress
 
 conn = mysql.connector.connect(host=config['host'],user=config['user'], password=config['password'], database=config['database'])
 cursor = conn.cursor()
 cursor.execute('SET NAMES utf8mb4;')
-#代理地址
-address_list =  ProxyAddress()
-# address = address_list.get_data()
 
 # movie_person book_person music_person
 # subject_num 25853071 name 庆余年 person_name 闲不住的小绵羊 person_id  rating 5 timestamp  1:-2 2:-1 3:0 4:+1 5:+2
@@ -39,25 +35,18 @@ class Person(object):
 
     def write_data(self):
         global movie,book,music
-        movie=Movie_List(self.__movie_href,address_list.get_data())
-        book=Book_List(self.__book_href,address_list.get_data())
-        music=Music_List(self.__music_href,address_list.get_data())
+        movie=Movie_List(self.__movie_href)
+        book=Book_List(self.__book_href)
+        music=Music_List(self.__music_href)
 
         self.__is_wrote()
-        if not self.__wrote:
-            try:
-                movie.write_data()
-                book.write_data()
-                music.write_data()
-                #写入人员表
-                cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])
-            except BaseException:
-                    address_list.next()
-                    self.write_data()
-                    #写入人员表
-                    cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])  
+        if not self.__wrote:       
+            movie.write_data()
+            book.write_data()
+            music.write_data()
+            #写入人员表
+            cursor.execute('insert into person (person_id) values (%s)',[self.__href[len('https://douban.com/people/'):-1]])
             
-
     def __is_wrote(self):
         try:
             cursor.execute('select * from person where person_id = %s',(self.__href[len('https://douban.com/people/'):-1],))   
