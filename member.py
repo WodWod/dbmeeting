@@ -63,7 +63,7 @@ class Member_List(object):
         
     def write_data(self):
         print('开始抓取...')
-        search_list = list(range(100,1000))
+        search_list = list(range(574,1000))
         for x in search_list:
             print('页数：',x-self.__count)
             try:

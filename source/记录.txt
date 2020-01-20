@@ -7,6 +7,11 @@
 2.1 MySQL±¨´í£º Found option without preceding group in config file:XXX; Fatal error in defaults handling.
        https://blog.csdn.net/life_android/article/details/56512606
 
+1-1000 691 159134715 book
+
+1000-2000 1873 71157210 book
+
+2000-~  2252 48495891 music
 
 
 

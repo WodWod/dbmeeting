@@ -111,7 +111,7 @@ class ProxyAddress(object):
         #     return True
 
         #飞蚁代理
-        req=request.Request('http://183.129.244.16:88/open?user_name=dbmeetap2&timestamp=%s&md5=D2107E18124EF112C90B838C82AF85D2&pattern=json&number=1' % int(time.time()) )
+        req=request.Request('http://183.129.244.16:88/open?user_name=dbmeetap12&timestamp=%s&md5=9F93EE8A012069F6554689A24675247B&pattern=json&number=1' % int(time.time()) )
         with request.urlopen(req) as f:
             data=json.loads(f.read().decode('utf-8'))
             cursor.execute('update proxy set address=%s',(data['domain']+':'+str(data['port'][0]),))
@@ -127,7 +127,7 @@ class ProxyAddress(object):
         #     parser.feed(data.decode('utf-8'))
 
         #飞蚁代理
-        req=request.Request('http://183.129.244.16:88/open?user_name=dbmeetap2&timestamp=%s&md5=D2107E18124EF112C90B838C82AF85D2&pattern=json&number=1' % int(time.time()) )
+        req=request.Request('http://183.129.244.16:88/open?user_name=dbmeetap12&timestamp=%s&md5=9F93EE8A012069F6554689A24675247B&pattern=json&number=1' % int(time.time()) )
         with request.urlopen(req) as f:
             data=json.loads(f.read().decode('utf-8'))
             cursor.execute('update proxy set address=%s',(data['domain']+':'+str(data['port'][0]),))

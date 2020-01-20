@@ -113,3 +113,16 @@ CREATE TABLE `proxy` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 delete from proxy where status=0;
+
+insert into dbtest.movie_person(subject_num,name,person_name,rating,person_id,img_src,timestamp)  select subject_num,name,person_name,rating,person_id,img_src,timestamp from dbmeeting.movie_person;
+insert into dbtest.book_person(subject_num,name,person_name,rating,person_id,img_src,timestamp)  select subject_num,name,person_name,rating,person_id,img_src,timestamp from dbmeeting.book_person;
+insert into dbtest.music_person(subject_num,name,person_name,rating,person_id,img_src,timestamp)  select subject_num,name,person_name,rating,person_id,img_src,timestamp from dbmeeting.music_person;
+insert into dbtest.person(person_id,timestamp)  select person_id,timestamp from dbmeeting.person;
+
+select count(*) as count,person_id from person group by person_id having count>1;
+
+create table temp as select max(id) as id,person_id from person group by person_id having count(person_id)>1;
+delete from person where id in (select id from temp);
+drop table temp;
+
+select count(*) as count,subject_num,person_id from book_person group by subject_num,person_id having count>1;
